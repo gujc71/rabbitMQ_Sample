@@ -1,0 +1,97 @@
+<html>
+<head>
+<script src="socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+</head>
+<body>
+<div id="loginDiv">
+	ID: <input type="text" id="idTxt" /> 
+	<input type="button" id="loginBtn" value="Login" />
+</div>
+<div id="chatDiv" style="display:none;">
+	<select id="userList" multiple="multiple" style="width:150px; height:200px;"></select>
+	<textarea id="chatTxt" rows="5" cols="30"></textarea>
+	<input type="button" id="sendBtn" value="Send" /> 
+</div>
+<br />
+<div id="logDiv" style="width:700px; height:300px; border: 1px solid black"> 
+</div>
+
+<script>
+$(document).ready(function() {
+	var userid = null;
+  	$('#loginBtn').click(function(){
+  		userid = $.trim($("#idTxt").val());
+    	if(userid == ""){
+			alert("Input your id !");
+			return;
+		}
+      	var msg = {type:'Login', userid: userid};
+      	socket.json.send(msg);
+	    $('#loginDiv').hide();
+	    $('#chatDiv').show();
+	});
+	$("#sendBtn").click(function(){
+		if ($("#userList option:selected").size()==0){
+			alert("메시지를 전송할 사용자를 선택하세요");
+			return
+		}
+		var message = $.trim($("#chatTxt").val());
+		if (message==""){
+			alert("Input message !");
+			return;
+		}
+		var msg = {type: 'msg', fromid: userid, message: message};
+		$("#userList option:selected").each(function(){
+				msg.toid = $(this).val();	
+				socket.json.send(msg);
+		});
+		$("#chatTxt").val("");
+	});
+	
+	var socket = new io.connect('http://localhost:1004');
+	var logDiv = $('#logDiv');
+	
+	socket.on('message', function(message){
+		var msg = $.parseJSON(message);
+		logDiv.append("<b>"+msg.fromid + "</b> : " + msg.message + '  (' + getyyyymmddhhmm(msg.time) + ')<br />');
+		//logDiv.append(message + '<br />');
+	}) ;
+	socket.on('users', function(message){
+		var users = message.split(',');
+		for (var user in users) {
+			if (users[user]) $("#userList").append("<option value='"+users[user]+"'>"+users[user]+"</option>");
+		}
+		sort4select($("#userList"));
+	}) ;
+	socket.on('logout', function(userid){
+		$("#userList").val(userid).attr("selected", "selected");
+		$("#userList option:selected").remove();
+	}) ;
+		socket.on('connect', function() {
+		logDiv.append("<b>Connected</b>");
+	});
+	socket.on('disconnect', function() {
+		logDiv.append("<b>Disconnected!</b>");
+	});
+	
+});
+function getyyyymmddhhmm(date) {
+	 var d = new Date(date);
+	 var yyyy = d.getFullYear();
+	 var mm = d.getMonth() < 9 ? "0" + (d.getMonth() + 1) : (d.getMonth() + 1); // getMonth() is zero-based
+	 var dd  = d.getDate() < 10 ? "0" + d.getDate() : d.getDate();
+	 var hh = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+	 var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+	 return "".concat(yyyy).concat("-").concat(mm).concat("-").concat(dd).concat(" ").concat(hh).concat(":").concat(min);
+ }
+function sort4select(obj) {
+    var op = obj.children("option");
+    op.sort(function(a, b) {
+        return a.text > b.text ? 1 : -1;
+    })
+    return obj.empty().append(op);
+}
+</script>
+</body>
+</html>
