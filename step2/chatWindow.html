@@ -1,0 +1,83 @@
+<html>
+<head>
+<style>
+	#chatDiv div {width: 95%; margin: 3px; display: inline-block;}
+	#chatDiv div div {float: left; width:auto; max-width:80%; border: 1px solid #DDDDDD; background-color: #FFFFFF; border-radius: 5px; word-wrap: break-word; display: inline-block; padding: 2px 7px;}
+	#chatDiv div p {float: left; font-size:10px}
+	.myChat {float: right !important; background-color: yellow !important;}
+	.myTime {float: right !important;}
+</style>
+<script>
+var roomid=null;
+
+function setRoomID(roomid, userid){
+	this.roomid=roomid;
+	var titleDiv = document.getElementById("titleDiv");
+	titleDiv.innerHTML = userid;
+}
+
+function setMessage(msg, ismine){
+	this.roomid=roomid;
+
+	var chatDiv = document.getElementById("chatDiv");
+
+	var div1 = document.createElement('div');
+	if (!ismine) div1.innerHTML = msg.fromid+ "<br/>";// + " ("+get_hhmm(msg.time)+ ")<br/>"; 
+	chatDiv.appendChild(div1);
+
+	var div2 = document.createElement('div');
+	div2.innerHTML = msg.message;
+	div1.appendChild(div2);
+	
+	var p1 = document.createElement('p');
+	p1.innerHTML = get_hhmm(msg.time);
+	div1.appendChild(p1);
+	
+	if (ismine) {
+		div2.className = 'myChat';
+		p1.className = 'myTime';
+	}
+	chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+
+function sendMsg(){
+	var chatTxt = document.getElementById("chatTxt");
+	if (chatTxt.value==""){
+		alert("input message");
+		return;
+	}
+	opener.sendMsg(roomid, chatTxt.value);
+	setMessage({time: new Date(), message: chatTxt.value}, true);
+}
+function get_hhmm(date) {
+	 var d = new Date(date);
+	 var hh = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+	 var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+	 return "".concat(hh).concat(":").concat(min);
+}
+
+window.onbeforeunload = function () {
+    opener.deleteRoom(roomid);
+}
+
+</script>
+</head>
+
+<body>
+	<div id="titleDiv" style="border: 1px solid black; background-color:#408080; min-height: 25px; width: 100%">
+	</div>
+	<div id="chatDiv" style="border: 1px solid black; height: 70%; width: 100%;overflow-y:scroll; ">
+		<!-- div>id<br/><div>test1<br/>test1</div><p>11:30</p></div>
+		<div style="float: right;"><p>11:30</p><div class="myChat">my message</div></div -->
+	</div>
+
+	<div style="float:left;width:70%">
+		<textarea id="chatTxt" rows="5" style="width:100%"></textarea>
+	</div>
+
+	<div style="float:left; margin-top: 30px">
+		<input type="button" id="sendBtn" value="Send"   onclick="sendMsg()"/> <br/>
+		<input type="button" id="closeBtn" value="Close" onclick="window.close()"/> 
+	<div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 <html>
 <head>
-<script src="socket.io.js"></script>
+<script src="../socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
 </head>
 <body>
@@ -18,8 +18,11 @@
 </div>
 
 <script>
+var roomList={};
+var socket=null;
+var userid = null;
+
 $(document).ready(function() {
-	var userid = null;
   	$('#loginBtn').click(function(){
   		userid = $.trim($("#idTxt").val());
     	if(userid == ""){
@@ -33,7 +36,7 @@ $(document).ready(function() {
 	});
 	$("#sendBtn").click(function(){
 		if ($("#userList option:selected").size()==0){
-			alert("¸Ş½ÃÁö¸¦ Àü¼ÛÇÒ »ç¿ëÀÚ¸¦ ¼±ÅÃÇÏ¼¼¿ä");
+			alert("ë©”ì‹œì§€ë¥¼ ì „ì†¡í•  ì‚¬ìš©ìë¥¼ ì„ íƒí•˜ì„¸ìš”");
 			return
 		}
 		var message = $.trim($("#chatTxt").val());
@@ -48,13 +51,41 @@ $(document).ready(function() {
 		});
 		$("#chatTxt").val("");
 	});
+	// chatting
+	$("#userList").dblclick(function(){
+		var users = $("#userList option:selected").val(); 
+		for (var rid in roomList) {
+			if (roomList[rid].users==users){
+				if (!roomList[rid].win) makeRoom(rid, users);
+				roomList[rid].win.focus();
+				return;
+			}
+		}	
+		makeRoom(getID(), users);
+	});
 	
-	var socket = new io.connect('http://localhost:1004');
+	socket = new io.connect('http://localhost:1004');
 	var logDiv = $('#logDiv');
 	
 	socket.on('message', function(message){
 		var msg = $.parseJSON(message);
-		logDiv.append("<b>"+msg.fromid + "</b> : " + msg.message + '  (' + getyyyymmddhhmm(msg.time) + ')<br />');
+		
+		if (msg.roomid) { // chatting
+			if (!roomList[msg.roomid] || !roomList[msg.roomid].win) makeRoom(msg.roomid, msg.fromid);
+
+			roomList[msg.roomid].win.setMessage(msg, msg.fromid==userid);
+			return;
+		}
+		// short message
+		var time = " (" + getyyyymmddhhmm(msg.time) + ")";
+		logDiv.append("<b>"+msg.fromid + "</b> : " + msg.message + time + '<br />');
+		if (userid==msg.fromid) return;
+		
+		var win=window.open("messageWindow.html","","width=350, height=150");
+		win.moveTo(screen.width-400,screen.availHeight-200);
+		$(win.document).contents().find('#titleDiv').html("Sender: " + msg.fromid + time);
+		$(win.document).contents().find('#chatDiv').html(msg.message);
+		win.focus();
 		//logDiv.append(message + '<br />');
 	}) ;
 	socket.on('users', function(message){
@@ -68,15 +99,31 @@ $(document).ready(function() {
 		$("#userList").val(userid).attr("selected", "selected");
 		$("#userList option:selected").remove();
 	}) ;
-	
-	socket.on('connect', function() {
-		logDiv.append("<b>Connected</b><br/>");
-	});
-	socket.on('disconnect', function() {
-		logDiv.append("<b>Disconnected!</b>");
-	});
-	
 });
+function makeRoom(rid, users){
+		var win=window.open("chatWindow.html","","width=350, height=450");
+		win.setRoomID(rid, users);
+	  	roomList[rid] = {win: win, users: users};
+}
+
+function deleteRoom(rid){
+	  	//delete roomList[rid];
+	  	roomList[rid].win=null;
+}
+
+function sendMsg(rid, message){
+	var msg = {type: 'msg', roomid: rid, fromid: userid, toid:roomList[rid].users, message: message};
+	socket.json.send(msg);
+};
+
+function getID() {
+    var newid = (new Date).getTime().toString();
+    for (var i = newid.length; i < 20; i++) {
+        newid = newid+Math.floor(Math.random() * 16).toString(16);
+    }
+    return newid;
+}
+
 function getyyyymmddhhmm(date) {
 	 var d = new Date(date);
 	 var yyyy = d.getFullYear();
@@ -85,7 +132,9 @@ function getyyyymmddhhmm(date) {
 	 var hh = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
 	 var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
 	 return "".concat(yyyy).concat("-").concat(mm).concat("-").concat(dd).concat(" ").concat(hh).concat(":").concat(min);
- }
+}
+
+
 function sort4select(obj) {
     var op = obj.children("option");
     op.sort(function(a, b) {

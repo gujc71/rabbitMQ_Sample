@@ -16,10 +16,10 @@ http.createServer(function (req, res) {
     res.writeHead(200);
     res.end(data);
   });
-}).listen(80);
+}).listen(80); 
 
 var io = require('socket.io')
 io = io.listen('1004');
 
-var a = require('./messageServer');
+var a = require('./step2/messageServer');
 a(io);
