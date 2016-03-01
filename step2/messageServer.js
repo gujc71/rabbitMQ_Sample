@@ -17,7 +17,10 @@ var messageServer = function(socket){
 			conn.on('message', function (message) {
 				try {
 					if (message.type == "Login") {
-						//console.log("Login "+message.userid);
+						if (connlist[message.userid]) {
+							conn.emit('alreadyLogin', '');
+							return;
+						}
 						try {
 							if(!conn.exchange){
 							  conn.exchange = rabbit.exchange(exchange, {type: 'topic',autoDelete: false,durable: false,exclusive: false,confirm: true});

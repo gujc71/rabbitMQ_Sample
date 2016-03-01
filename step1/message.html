@@ -55,7 +55,6 @@ $(document).ready(function() {
 	socket.on('message', function(message){
 		var msg = $.parseJSON(message);
 		logDiv.append("<b>"+msg.fromid + "</b> : " + msg.message + '  (' + getyyyymmddhhmm(msg.time) + ')<br />');
-		//logDiv.append(message + '<br />');
 	}) ;
 	socket.on('users', function(message){
 		var users = message.split(',');
@@ -68,15 +67,26 @@ $(document).ready(function() {
 		$("#userList").val(userid).attr("selected", "selected");
 		$("#userList option:selected").remove();
 	}) ;
+	socket.on('alreadyLogin', function(){
+		alert("this ID is already logged in!");
+		userid = null;
+		deactivateChat();
+	}) ;
 	
 	socket.on('connect', function() {
 		logDiv.append("<b>Connected</b><br/>");
 	});
 	socket.on('disconnect', function() {
 		logDiv.append("<b>Disconnected!</b>");
+		deactivateChat();
 	});
 	
 });
+function deactivateChat() {
+    $('#loginDiv').show();
+    $('#chatDiv').hide();
+}
+
 function getyyyymmddhhmm(date) {
 	 var d = new Date(date);
 	 var yyyy = d.getFullYear();

@@ -99,6 +99,15 @@ $(document).ready(function() {
 		$("#userList").val(userid).attr("selected", "selected");
 		$("#userList option:selected").remove();
 	}) ;
+	socket.on('alreadyLogin', function(){
+		alert("this ID is already logged in!");
+		userid = null;
+		deactivateChat();
+	}) ;
+	socket.on('disconnect', function() {
+	    logDiv.append("<b>Disconnected!</b>");
+	    deactivateChat()
+	});
 });
 function makeRoom(rid, users){
 		var win=window.open("chatWindow.html","","width=350, height=450");
@@ -115,7 +124,10 @@ function sendMsg(rid, message){
 	var msg = {type: 'msg', roomid: rid, fromid: userid, toid:roomList[rid].users, message: message};
 	socket.json.send(msg);
 };
-
+function deactivateChat() {
+    $('#loginDiv').show();
+    $('#chatDiv').hide();
+}
 function getID() {
     var newid = (new Date).getTime().toString();
     for (var i = newid.length; i < 20; i++) {

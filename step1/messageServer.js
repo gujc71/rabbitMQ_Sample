@@ -17,6 +17,10 @@ var messageServer = function(socket){
 			conn.on('message', function (message) {
 				try {
 					if (message.type == "Login") {
+						if (connlist[message.userid]) {
+							conn.emit('alreadyLogin', '');
+							return;
+						}
 						//console.log("Login "+message.userid);
 						try {
 							if(!conn.exchange){
