@@ -48,7 +48,14 @@ function sendMsg(){
 	}
 	opener.sendMsg(roomid, chatTxt.value);
 	setMessage({time: new Date(), message: chatTxt.value}, true);
+	chatTxt.value="";
 }
+
+function chatTxt_keypress(event){
+	sendMsg();
+	event.preventDefault();
+}
+
 function get_hhmm(date) {
 	 var d = new Date(date);
 	 var hh = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
@@ -72,7 +79,7 @@ window.onbeforeunload = function () {
 	</div>
 
 	<div style="float:left;width:70%">
-		<textarea id="chatTxt" rows="5" style="width:100%"></textarea>
+		<textarea id="chatTxt" rows="5" style="width:100%" onkeypress="if(event.keyCode==13) chatTxt_keypress(event);"></textarea>
 	</div>
 
 	<div style="float:left; margin-top: 30px">

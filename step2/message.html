@@ -9,12 +9,18 @@
 	<input type="button" id="loginBtn" value="Login" />
 </div>
 <div id="chatDiv" style="display:none;">
-	<select id="userList" multiple="multiple" style="width:150px; height:200px;"></select>
-	<textarea id="chatTxt" rows="5" cols="30"></textarea>
-	<input type="button" id="sendBtn" value="Send" /> 
+	<div style="float:left">
+		users<br/>
+		<select id="userList" multiple="multiple" style="width:150px; height:200px;"></select>
+	</div>
+	<div style="float:left; margin-left:10px;">
+		input your message<br/>
+		<textarea id="chatTxt" rows="5" cols="30"></textarea>
+		<input type="button" id="sendBtn" value="Send" /> 
+	<div>
 </div>
 <br />
-<div id="logDiv" style="width:700px; height:300px; border: 1px solid black"> 
+<div id="logDiv" style="width:500px; height:300px; border: 1px solid black"> 
 </div>
 
 <script>
@@ -34,14 +40,16 @@ $(document).ready(function() {
 	    $('#loginDiv').hide();
 	    $('#chatDiv').show();
 	});
+	// short message
 	$("#sendBtn").click(function(){
 		if ($("#userList option:selected").size()==0){
-			alert("메시지를 전송할 사용자를 선택하세요");
+
+			alert("Choose a contact users");
 			return
 		}
 		var message = $.trim($("#chatTxt").val());
 		if (message==""){
-			alert("Input message !");
+			alert("Input your message !");
 			return;
 		}
 		var msg = {type: 'msg', fromid: userid, message: message};
